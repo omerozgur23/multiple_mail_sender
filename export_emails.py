@@ -53,6 +53,7 @@ class Export_Emails:
         websites_file = os.path.join(directory, "websites.txt")
         emails_file = os.path.join(directory, "emails.txt")
         failed_urls_file = os.path.join(directory, "failed_urls.txt")
+        scanned_websites_file = os.path.join(directory, "scanned_websites.txt")
         
         successful_urls = []
         failed_urls = []
@@ -71,8 +72,15 @@ class Export_Emails:
                         successful_urls.append(url)
                     else:
                         failed_urls.append(url)
-                if failed_urls:
-                    Export_Emails.save_failed_urls(failed_urls, directory, failed_urls_file)
+
+                with open(scanned_websites_file, 'a') as file:
+                    for url in successful_urls:
+                        file.write(url + '\n')
+                # if failed_urls:
+                Export_Emails.save_failed_urls(failed_urls, directory, failed_urls_file)
+
+                open(websites_file, 'w').close()
+                print(f"{Fore.GREEN}Process completed. Scanned websites saved, failed URLs recorded, and websites.txt cleared.")
         except KeyboardInterrupt:
             pass
         finally:

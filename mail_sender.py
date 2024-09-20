@@ -25,7 +25,7 @@ class Mail_Sender:
         body = """
         <html>
         <body>
-            <p>Sayın Yetkili,</p>
+            <p>Değerli İK Ekibi,</p>
             <p>Ben Ömer Özgür, yazılım geliştirme alanında bir Junior Developer olarak kariyerime devam ediyorum. Şu anda full stack, backend ve Flutter geliştirme konularında kendimi geliştirmekteyim. Çeşitli projelerde yer alarak edindiğim deneyimlerle, karmaşık sorunları sade ve anlaşılır çözümlerle basitleştirme yeteneğimi artırdım.</p>
             <p>Yazılım dünyasında hızlı öğrenme ve uygulama becerilerimle, kullanıcı dostu ve etkili çözümler üretmeye odaklanıyorum. Firmanızda yazılım geliştirici olarak çalışmak ve ekibinize değer katmak için sabırsızlanıyorum. Detaylı özgeçmişim ekte yer almaktadır.</p>
             <p>Değerlendirmeniz sonucunda bir görüşme imkanı sağlayabilirsek, sizi daha yakından tanımaktan memnuniyet duyarım. Vakit ayırdığınız için teşekkür eder, geri dönüşlerinizi sabırsızlıkla beklerim.</p>
@@ -66,8 +66,10 @@ class Mail_Sender:
 
                     msg.attach(part)
                     server.sendmail(sender_email, company_email, msg.as_string())
+                    Mail_Sender.save_success_send_emails_to_file(company_email)
                     print(f"{Fore.GREEN}\n[✓] Email successfully sent to {Fore.YELLOW}{company_email}")
                 except Exception as e:
+                    Mail_Sender.save_failed_send_emails_to_file(company_email)
                     print(f"{Fore.RED}\n[X] Failed to send email to {company_email}: {e}")
             print(f"{Fore.GREEN}\nAll emails were processed!")
         except Exception as e:
@@ -81,15 +83,65 @@ class Mail_Sender:
                 pass
             return
     
-    def get_emails_from_txt(file_path):
+    @staticmethod
+    def save_success_send_emails_to_file(email):
+        directory = "C:/Users/omero/Desktop/company_emails"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
+        file_path = os.path.join(directory, "success_send.txt")
+        with open(file_path, 'a') as file:  # Add email addresses by opening in 'a' mode
+            file.write(email + '\n')
+
+        emails_file_path = os.path.join(directory, "emails.txt")
+        if os.path.exists(emails_file_path):
+            with open(emails_file_path, "r") as file:
+                emails = file.readlines()
+            
+            emails = [e.strip() for e in emails if e.strip() != email]
+            
+            with open(emails_file_path, "w") as file:
+                file.write('\n'.join(emails) + '\n')
+
+    @staticmethod
+    def save_failed_send_emails_to_file(email):
+        directory = "C:/Users/omero/Desktop/company_emails"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        
+        file_path = os.path.join(directory, "failed_send.txt")
+        with open(file_path, 'a') as file:  # Add email addresses by opening in 'a' mode
+            file.write(email + '\n')
+
+    @staticmethod
+    def check_if_email_has_been_sent(email):
+        file_path = "C:/Users/omero/Desktop/company_emails/success_send.txt"
+        old_emails = Mail_Sender.get_emails_from_txt(file_path, check=False)
+        
+        if email in old_emails:
+            print(f"{Fore.YELLOW}An e-mail has already been sent to this email address: {Fore.GREEN}{email}")
+            response = input(f"{Fore.YELLOW}Do you want to send mail to this e-mail address again (Y/N): ").strip().lower()
+            return response == "y"
+        return True
+    
+    def get_emails_from_txt(file_path, check=True):
         if not os.path.exists(file_path):
             print(f"{Fore.RED}{file_path} not found")
             return []
         
         with open(file_path, "r") as file:
             emails = [line.strip() for line in file]
-        
-        return emails
+
+        if check:
+            ke.show_cursor()
+            filtered_emails = []
+            for email in emails:
+                if Mail_Sender.is_valid_email(email) and Mail_Sender.check_if_email_has_been_sent(email):
+                    filtered_emails.append(email)
+            ke.hide_cursor()
+            return filtered_emails
+        else:
+            return emails
     
     def enter_email_manually():
         while True:
@@ -105,10 +157,13 @@ class Mail_Sender:
         for i in range(num_of_companies):
             while True:
                 email = input(f"{Fore.YELLOW}{i+1}. {enter_email_text}{Style.RESET_ALL}")
-
                 if Mail_Sender.is_valid_email(email):
-                    company_emails.append(email)
-                    break
+                    if Mail_Sender.check_if_email_has_been_sent(email):
+                        company_emails.append(email)
+                        break
+                    else:
+                        print(f"{Fore.RED}Email skipped: {email}{Style.RESET_ALL}")
+                        break
                 else:
                     print(f"{Fore.RED}Invalid email format! Please enter a valid e-mail address.{Style.RESET_ALL}")
         return company_emails

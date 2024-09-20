@@ -3,7 +3,7 @@ import sys
 import importlib.util
 
 # Required Packages
-required = {'colorama', 'tabulate', 'requests', 'beautifulsoup4'}
+required = {'colorama', 'tabulate', 'requests'}
 
 def install_missing_packages(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
@@ -77,7 +77,7 @@ def main():
                         Table.draw_table(company_emails)
                         ms.confirm_and_send_emails(company_emails)
                     elif current_row == 1:
-                        company_emails = ms.enter_email_manually()
+                        company_emails = ms.enter_email_manually()  
                         Table.draw_table(company_emails)
                         ms.confirm_and_send_emails(company_emails)
                     elif current_row == 2:
