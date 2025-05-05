@@ -6,6 +6,7 @@ if os.name == 'nt':  # Windows
 else:  # Unix-like
     import tty
     import termios
+    import select
 
 class Key_Event:
     def clear_screen():
@@ -21,10 +22,10 @@ class Key_Event:
         print("\033[u", end='')
 
     def hide_cursor():
-        print("\033[?25l", end='')
+        print("\033[?25l", end='', flush=True)
 
     def show_cursor():
-        print("\033[?25h", end='')
+        print("\033[?25h", end='', flush=True)
 
     def get_key():
         if os.name == 'nt':  # Windows
@@ -39,6 +40,16 @@ class Key_Event:
             try:
                 tty.setraw(sys.stdin.fileno())
                 ch = sys.stdin.read(1)
+                if ch == '\x1b':
+                    ch += sys.stdin.read(2)
+                    if ch == '\x1b[A':
+                        return 'up'
+                    elif ch == '\x1b[B':
+                        return 'down'
+                    elif ch == '\x1b[C':
+                        return 'right'
+                    elif ch == '\x1b[D':
+                        return 'left'
+                return ch
             finally:
                 termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-            return ch

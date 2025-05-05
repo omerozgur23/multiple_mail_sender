@@ -20,7 +20,11 @@ class Mail_Sender:
     @staticmethod
     def send_email(company_emails):
         sender_email = os.getenv("EMAIL_SENDER")
+        if not sender_email:
+            print(f"{Fore.RED}❌ EMAIL_SENDER environment variable is not set!")
         sender_password = os.getenv("EMAIL_PASSWORD")
+        if not sender_password:
+            print(f"{Fore.RED}❌ EMAIL_PASSWORD environment variable is not set!")
         subject = "Açık Pozisyon Başvurusu Hk."
         body = """
         <html>
@@ -39,12 +43,12 @@ class Mail_Sender:
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
         try:
-            server = smtplib.SMTP(smtp_server, smtp_port) # SMTP Sunucusuna bağlanıldı
-            server.starttls() # TLS(Güvenli Bağlantı) başlatıldı
-            server.login(sender_email, sender_password) # Oturum açıldı
+            server = smtplib.SMTP(smtp_server, smtp_port) # Connected to SMTP Server
+            server.starttls() # TLS(Secure Connection) is launched
+            server.login(sender_email, sender_password) # Session opened
 
             pdf_filename = "Omer_Ozgur.pdf"
-            pdf_filepath = "C:/Users/omero/Desktop/Omer_Ozgur.pdf"
+            pdf_filepath = "/home/omero/Desktop/shared_file/Cv/Omer_Ozgur.pdf"
 
             for company_email in company_emails:
                 try:
@@ -68,12 +72,14 @@ class Mail_Sender:
                     server.sendmail(sender_email, company_email, msg.as_string())
                     Mail_Sender.save_success_send_emails_to_file(company_email)
                     print(f"{Fore.GREEN}\n[✓] Email successfully sent to {Fore.YELLOW}{company_email}")
+
                 except Exception as e:
                     Mail_Sender.save_failed_send_emails_to_file(company_email)
                     print(f"{Fore.RED}\n[X] Failed to send email to {company_email}: {e}")
+
             print(f"{Fore.GREEN}\nAll emails were processed!")
         except Exception as e:
-            print(f"{Fore.RED}\n[X] Failed to connect to SMTP server: {e}")
+            print(f"{Fore.RED}\n❌ Failed to connect to SMTP server: {e}")
         finally:
             server.quit()
             ke.hide_cursor()
@@ -85,7 +91,7 @@ class Mail_Sender:
     
     @staticmethod
     def save_success_send_emails_to_file(email):
-        directory = "C:/Users/omero/Desktop/company_emails"
+        directory = "/home/omero/Desktop/company_emails"
         if not os.path.exists(directory):
             os.makedirs(directory)
         
@@ -105,7 +111,8 @@ class Mail_Sender:
 
     @staticmethod
     def save_failed_send_emails_to_file(email):
-        directory = "C:/Users/omero/Desktop/company_emails"
+        # directory = "C:/Users/omero/Desktop/company_emails"
+        directory = "/home/omero/Desktop/company_emails"
         if not os.path.exists(directory):
             os.makedirs(directory)
         
@@ -115,7 +122,7 @@ class Mail_Sender:
 
     @staticmethod
     def check_if_email_has_been_sent(email):
-        file_path = "C:/Users/omero/Desktop/company_emails/success_send.txt"
+        file_path = "/home/omero/Desktop/company_emails/success_send.txt"
         old_emails = Mail_Sender.get_emails_from_txt(file_path, check=False)
         
         if email in old_emails:

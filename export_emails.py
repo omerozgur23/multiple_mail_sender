@@ -49,7 +49,8 @@ class Export_Emails:
         print(f"{Fore.RED}Failed URLs have been saved from: {Fore.YELLOW}{url}")
 
     def run_extract():
-        directory = "C:\\Users\\omero\\Desktop\\company_emails"
+        # directory = "C:\\Users\\omero\\Desktop\\company_emails"
+        directory = "/home/omero/Desktop/company_emails"
         websites_file = os.path.join(directory, "websites.txt")
         emails_file = os.path.join(directory, "emails.txt")
         failed_urls_file = os.path.join(directory, "failed_urls.txt")
@@ -59,7 +60,8 @@ class Export_Emails:
         failed_urls = []
         try:
             if not os.path.exists(websites_file):
-                print(f"{Fore.RED}{websites_file} not found.")
+                print(f"❌ {Fore.RED}{websites_file} not found.")
+                print("Create a file named 'emails.txt' in the directory above")
             else:
                 with open(websites_file, 'r') as file:
                     urls = [line.strip() for line in file]
